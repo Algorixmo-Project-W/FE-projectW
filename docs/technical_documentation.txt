@@ -1,0 +1,158 @@
+Project W — Technical Documentation (MVP)
+1. Overview
+Project W is a lightweight WhatsApp-based campaign automation platform designed for businesses to send instant, predefined replies to customers using the WhatsApp Cloud API. The system enables businesses to connect their WhatsApp Business API credentials, receive incoming messages through a webhook, store them, and respond automatically with a fixed message defined by the campaign.
+This MVP focuses purely on essential message automation and basic user management.
+
+2. Core Features
+2.1 WhatsApp API Integration
+Businesses can connect their WhatsApp Cloud API by manually adding the following:
+WhatsApp Business ID
+
+
+Phone Number ID
+
+
+Access Token
+
+
+WhatsApp User ID
+
+
+Connected Phone Number
+
+
+These values allow Project W to communicate with Meta’s Cloud API and handle webhooks securely.
+
+2.2 Campaign Automation
+Each business can create one or more simple campaigns.
+
+
+Every campaign supports one single fixed automated reply.
+
+
+When a customer sends a message to the connected WhatsApp number:
+
+
+The system receives the webhook event.
+
+
+The message is stored in the database.
+
+
+The predefined automatic reply for that campaign is instantly sent back.
+
+
+
+2.3 Incoming Message Handling
+The platform processes:
+Text messages
+
+
+Images (basic support in MVP)
+
+
+Stored data includes:
+Sender phone number
+
+
+Message content or media link
+
+
+Timestamp
+
+
+Campaign matched
+
+
+
+2.4 Admin Dashboard
+The admin panel provides essential tools for managing campaign performance and incoming customer messages.
+Admin Panel Functionalities
+View all incoming messages in a clean table
+
+
+Filter messages by campaign
+
+
+Search by phone number
+
+
+Export message data to CSV
+
+
+View connected WhatsApp API details
+
+
+This provides businesses with a straightforward and efficient monitoring system.
+
+3. Authentication
+Businesses access the admin dashboard using:
+Email + Password login
+
+
+No social login or OTP authentication is included in the MVP.
+
+4. Tech Stack
+Backend
+Node.js (Express or similar)
+
+
+PostgreSQL
+
+
+WhatsApp Cloud API (Meta)
+
+
+Frontend
+React
+
+
+
+5. System Flow Summary
+Business creates an account.
+
+
+Admin manually enters WhatsApp API details (Business ID, Phone Number ID, Token, WhatsApp User ID, etc.).
+
+
+Business creates a simple campaign with one fixed automated message.
+
+
+Customer sends a message → webhook receives it.
+
+
+System logs the message in PostgreSQL.
+
+
+System sends the automated reply.
+
+
+Admin views all message logs in the dashboard.
+
+
+
+6. Future Roadmap
+Potential enhancements for future releases:
+Multiple dynamic reply flows
+
+
+Template-based message sending
+
+
+Broadcast messaging
+
+
+Media templates (buttons, lists, CTAs)
+
+
+Role-based user access
+
+
+Chat interface inside admin dashboard
+
+
+Analytics and insights
+
+
+Message scheduling
+

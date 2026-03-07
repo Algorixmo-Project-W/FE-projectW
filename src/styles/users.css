@@ -1,0 +1,346 @@
+/* Users Page Styles */
+.users-page {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Page Header */
+.users-header {
+  margin-bottom: 1.5rem;
+}
+
+.users-header .header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.users-header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem 0;
+  letter-spacing: -0.025em;
+}
+
+.users-header p {
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+  margin: 0;
+}
+
+/* Stats Cards */
+.users-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.users-stats .stat-card {
+  background-color: var(--bg-primary);
+  border-radius: 10px;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid var(--border-light);
+  transition: border-color 0.15s;
+}
+
+.users-stats .stat-card:hover {
+  border-color: var(--gray-300);
+}
+
+.users-stats .stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.users-stats .stat-icon.primary {
+  background-color: var(--primary-subtle);
+  color: var(--primary);
+}
+
+.users-stats .stat-icon.success {
+  background-color: var(--success-light);
+  color: var(--success);
+}
+
+.users-stats .stat-icon.info {
+  background-color: var(--accent-light);
+  color: var(--accent);
+}
+
+.users-stats .stat-info h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.025em;
+}
+
+.users-stats .stat-info p {
+  color: var(--text-secondary);
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+/* Users Table */
+.users-table-container {
+  background-color: var(--bg-primary);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.users-table thead {
+  background-color: var(--bg-secondary);
+}
+
+.users-table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.users-table tbody tr {
+  border-bottom: 1px solid var(--border-light);
+  transition: background-color 0.15s;
+}
+
+.users-table tbody tr:hover {
+  background-color: var(--bg-secondary);
+}
+
+.users-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.users-table td {
+  padding: 0.875rem 1rem;
+  color: var(--text-primary);
+  vertical-align: middle;
+  font-size: 0.875rem;
+}
+
+/* User Info */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background-color: var(--primary);
+  color: var(--text-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.user-name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.user-email {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.date-text {
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
+/* Status Badge */
+.users-table .status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.625rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.users-table .status-badge.active {
+  background-color: var(--success-light);
+  color: var(--success);
+}
+
+.users-table .status-badge.inactive {
+  background-color: var(--gray-100);
+  color: var(--gray-500);
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.toggle-status-btn {
+  padding: 0.375rem 0.625rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.75rem;
+  transition: all 0.15s;
+}
+
+.toggle-status-btn.active {
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.toggle-status-btn.active:hover {
+  background-color: var(--error-light);
+}
+
+.toggle-status-btn.inactive {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.toggle-status-btn.inactive:hover {
+  background-color: var(--primary-subtle);
+}
+
+/* Input with Icon */
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 0.875rem;
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.input-with-icon .form-input {
+  padding-left: 2.5rem;
+}
+
+.input-with-icon .toggle-visibility {
+  position: absolute;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-icon .toggle-visibility:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
+}
+
+/* Form Errors */
+.form-input.error {
+  border-color: var(--error);
+}
+
+.error-text {
+  display: block;
+  color: var(--error);
+  font-size: 0.75rem;
+  margin-top: 0.375rem;
+}
+
+/* Empty State */
+.empty-row {
+  text-align: center;
+  padding: 3rem 1.5rem !important;
+}
+
+.empty-row .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.empty-row .empty-icon {
+  font-size: 2.5rem;
+  color: var(--gray-300);
+}
+
+.empty-row p {
+  color: var(--text-secondary);
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .users-table-container {
+    overflow-x: auto;
+  }
+
+  .users-table {
+    min-width: 900px;
+  }
+}
+
+@media (max-width: 768px) {
+  .users-page {
+    padding: 0;
+  }
+
+  .users-header .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .users-header .btn {
+    width: 100%;
+  }
+
+  .users-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toggle-status-btn {
+    text-align: center;
+  }
+}

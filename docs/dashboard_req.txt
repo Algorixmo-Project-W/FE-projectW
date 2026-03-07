@@ -1,0 +1,81 @@
+Project W – Admin Dashboard Sidebar Menu
+Sidebar Menu Items (Order Updated)
+Dashboard / Home
+
+
+Overview of messages or quick stats (optional)
+
+API Credentials / WhatsApp Settings
+
+
+Add / update Business ID, Phone Number ID, Access Token
+
+
+Add WhatsApp User IDs manually
+
+
+View connected phone numbers
+
+Campaigns
+
+
+Create / edit / delete campaigns
+
+
+View campaign details
+
+
+Fixed automated reply per campaign
+
+
+Messages
+
+
+View all incoming messages
+
+
+Search by phone number or WhatsApp ID
+
+
+Filter by campaign
+
+
+Export to CSV
+
+
+Campaigns
+
+
+Create / edit / delete campaigns
+
+
+View campaign details
+
+
+Fixed automated reply per campaign
+
+
+
+Users / Admins (optional MVP)
+
+
+Manage admin login accounts
+
+
+Email + password setup
+
+
+Settings (optional MVP)
+
+
+General platform settings (theme, notifications, etc.)
+
+
+Profile / Logout
+
+
+Admin profile details
+
+
+Logout button
+

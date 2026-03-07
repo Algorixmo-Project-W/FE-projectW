@@ -1,0 +1,108 @@
+Project W – Database Tables (MVP)
+1. users
+Stores admin accounts.
+Fields:
+id (Primary Key, UUID)
+
+
+email (string, unique)
+
+
+password_hash (string, hashed password)
+
+
+name (string, optional)
+
+
+created_at (timestamp)
+
+
+updated_at (timestamp)
+
+
+
+2. wa_credentials
+Stores WhatsApp Cloud API credentials for each admin/business.
+Fields:
+id (Primary Key, UUID)
+
+
+user_id (Foreign Key → users.id)
+
+
+business_id (string)
+
+
+phone_number_id (string)
+
+
+access_token (string, encrypted)
+
+
+whatsapp_user_id (string) – manually added by admin
+
+
+phone_number (string)
+
+
+created_at (timestamp)
+
+
+updated_at (timestamp)
+
+
+
+3. campaigns
+Stores campaigns created by admins.
+Fields:
+id (Primary Key, UUID)
+
+
+user_id (Foreign Key → users.id)
+
+
+name (string)
+
+
+fixed_reply (string)
+
+
+created_at (timestamp)
+
+
+updated_at (timestamp)
+
+
+
+4. messages
+Stores incoming customer messages and related info.
+Fields:
+id (Primary Key, UUID)
+
+
+campaign_id (Foreign Key → campaigns.id)
+
+
+waba_id (Foreign Key → waba_credentials.id)
+
+
+sender_number (string)
+
+
+message_type (enum: text, image)
+
+
+message_content (text or media URL)
+
+
+reply_status (enum: success, failed)
+
+
+received_at (timestamp)
+
+
+created_at (timestamp)
+
+
+
+
