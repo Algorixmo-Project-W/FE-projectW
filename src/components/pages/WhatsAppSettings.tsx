@@ -24,6 +24,7 @@ interface WhatsAppCredentials {
   phoneNumberId: string;
   accessToken: string;
   whatsappUserId: string;
+  appId: string;
   phoneNumber: string;
 }
 
@@ -39,6 +40,7 @@ const WhatsAppSettings: React.FC = () => {
     phoneNumberId: '',
     accessToken: '',
     whatsappUserId: '',
+    appId: '',
     phoneNumber: ''
   });
 
@@ -65,6 +67,7 @@ const WhatsAppSettings: React.FC = () => {
             phoneNumberId: cred.phoneNumberId,
             accessToken: '', // Token not returned by API for security
             whatsappUserId: cred.whatsappUserId,
+            appId: cred.appId,
             phoneNumber: cred.phoneNumber
           });
           setConnectionStatus('success');
@@ -99,7 +102,7 @@ const WhatsAppSettings: React.FC = () => {
     if (!user?.id) return;
     
     // Validate required fields
-    if (!credentials.businessId || !credentials.phoneNumberId || !credentials.whatsappUserId || !credentials.phoneNumber) {
+    if (!credentials.businessId || !credentials.phoneNumberId || !credentials.appId || !credentials.phoneNumber) {
       setConnectionStatus('error');
       setStatusMessage('Please fill in all required fields');
       return;
@@ -125,6 +128,7 @@ const WhatsAppSettings: React.FC = () => {
           businessId: credentials.businessId,
           phoneNumberId: credentials.phoneNumberId,
           whatsappUserId: credentials.whatsappUserId,
+          appId: credentials.appId,
           phoneNumber: credentials.phoneNumber
         };
         // Only include token if user entered a new one
@@ -140,6 +144,7 @@ const WhatsAppSettings: React.FC = () => {
           phoneNumberId: credentials.phoneNumberId,
           accessToken: credentials.accessToken,
           whatsappUserId: credentials.whatsappUserId,
+          appId: credentials.appId,
           phoneNumber: credentials.phoneNumber
         });
       }
@@ -294,20 +299,20 @@ const WhatsAppSettings: React.FC = () => {
               </small>
             </div>
 
-            {/* WhatsApp User ID */}
+            {/* App ID */}
             <div className="form-group">
-              <label htmlFor="whatsappUserId">WhatsApp User ID *</label>
+              <label htmlFor="appId">App ID *</label>
               <input
                 type="text"
-                id="whatsappUserId"
-                value={credentials.whatsappUserId}
-                onChange={(e) => handleInputChange('whatsappUserId', e.target.value)}
-                placeholder="Enter WhatsApp User ID"
+                id="appId"
+                value={credentials.appId}
+                onChange={(e) => handleInputChange('appId', e.target.value)}
+                placeholder="Enter your App ID"
                 className="form-input"
                 required
               />
               <small className="form-help">
-                Your WhatsApp Business User ID for webhook verification
+                Your Meta App ID for API integration
               </small>
             </div>
 

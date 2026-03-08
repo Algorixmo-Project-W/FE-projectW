@@ -34,6 +34,7 @@ export interface WaCredential {
   phoneNumberId: string;
   accessToken: string;
   whatsappUserId: string;
+  appId: string;
   phoneNumber: string;
   createdAt: string;
   updatedAt: string;
@@ -46,6 +47,7 @@ export interface SafeWaCredential {
   businessId: string;
   phoneNumberId: string;
   whatsappUserId: string;
+  appId: string;
   phoneNumber: string;
   createdAt: string;
   updatedAt: string;
@@ -80,6 +82,7 @@ export interface AddWaCredentialRequest {
   phoneNumberId: string;
   accessToken: string;
   whatsappUserId: string;
+  appId: string;
   phoneNumber: string;
 }
 
@@ -88,6 +91,7 @@ export interface UpdateWaCredentialRequest {
   phoneNumberId?: string;
   accessToken?: string;
   whatsappUserId?: string;
+  appId?: string;
   phoneNumber?: string;
 }
 
