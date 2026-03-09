@@ -8,8 +8,7 @@ import {
   MdCheckCircle,
   MdError,
   MdRefresh,
-  MdClose,
-  MdSend
+  MdClose
 } from 'react-icons/md';
 import { getMessagesByUserId, getCampaignsByUserId } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -39,7 +38,6 @@ const Messages: React.FC = () => {
   const [isConversationOpen, setIsConversationOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<ApiMessage | null>(null);
   const [conversationMessages, setConversationMessages] = useState<ConversationMessage[]>([]);
-  const [newMessage, setNewMessage] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -129,7 +127,7 @@ const Messages: React.FC = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'success':
+      case 'sent':
         return <MdCheckCircle className="status-icon success" />;
       case 'failed':
         return <MdError className="status-icon error" />;
@@ -156,7 +154,7 @@ const Messages: React.FC = () => {
     
     // Load conversation history for this contact
     const msgTimestamp = new Date(message.receivedAt);
-    const mockConversation: ConversationMessage[] = [
+    const conversationData: ConversationMessage[] = [
       {
         id: '1',
         sender: 'customer',
@@ -164,18 +162,49 @@ const Messages: React.FC = () => {
         content: message.messageContent,
         timestamp: msgTimestamp,
         status: 'read'
-      },
-      {
-        id: '2',
-        sender: 'business',
-        messageType: 'text',
-        content: 'Thank you for contacting us! How can we help you today?',
-        timestamp: new Date(msgTimestamp.getTime() + 60000),
-        status: 'read'
       }
     ];
     
-    setConversationMessages(mockConversation);
+    // Add reply if it exists
+    if (message.replyContent) {
+      // Parse image replies: "[Image: URL] caption" format
+      const imageMatch = message.replyContent.match(/^\[Image: (.+?)\]\s*(.*)$/);
+      if (imageMatch) {
+        const imageUrl = imageMatch[1];
+        const caption = imageMatch[2];
+        // Add image bubble
+        conversationData.push({
+          id: '2',
+          sender: 'business',
+          messageType: 'image',
+          content: imageUrl,
+          timestamp: new Date(message.createdAt),
+          status: message.replyStatus === 'sent' ? 'delivered' : 'sent'
+        });
+        // Add caption as separate text bubble if exists
+        if (caption) {
+          conversationData.push({
+            id: '3',
+            sender: 'business',
+            messageType: 'text',
+            content: caption,
+            timestamp: new Date(message.createdAt),
+            status: message.replyStatus === 'sent' ? 'delivered' : 'sent'
+          });
+        }
+      } else {
+        conversationData.push({
+          id: '2',
+          sender: 'business',
+          messageType: 'text',
+          content: message.replyContent,
+          timestamp: new Date(message.createdAt),
+          status: message.replyStatus === 'sent' ? 'delivered' : 'sent'
+        });
+      }
+    }
+    
+    setConversationMessages(conversationData);
     setIsConversationOpen(true);
   };
 
@@ -184,33 +213,6 @@ const Messages: React.FC = () => {
     setIsConversationOpen(false);
     setSelectedContact(null);
     setConversationMessages([]);
-    setNewMessage('');
-  };
-
-  // Send message
-  const handleSendMessage = () => {
-    if (!newMessage.trim() || !selectedContact) return;
-
-    const message: ConversationMessage = {
-      id: Date.now().toString(),
-      sender: 'business',
-      messageType: 'text',
-      content: newMessage,
-      timestamp: new Date(),
-      status: 'sent'
-    };
-
-    setConversationMessages([...conversationMessages, message]);
-    setNewMessage('');
-
-    // Simulate message delivery
-    setTimeout(() => {
-      setConversationMessages(prev => 
-        prev.map(msg => 
-          msg.id === message.id ? { ...msg, status: 'delivered' as const } : msg
-        )
-      );
-    }, 1000);
   };
 
   const formatConversationTime = (date: Date) => {
@@ -320,7 +322,7 @@ const Messages: React.FC = () => {
               className="filter-select"
             >
               <option value="all">All Status</option>
-              <option value="success">Success</option>
+              <option value="sent">Sent</option>
               <option value="failed">Failed</option>
               <option value="pending">Pending</option>
             </select>
@@ -450,11 +452,9 @@ const Messages: React.FC = () => {
                     )}
                     <div className="message-meta">
                       <span className="message-time">{formatConversationTime(msg.timestamp)}</span>
-                      {msg.sender === 'business' && msg.status && (
-                        <span className={`message-status ${msg.status}`}>
-                          {msg.status === 'sent' && '✓'}
-                          {msg.status === 'delivered' && '✓✓'}
-                          {msg.status === 'read' && '✓✓'}
+                      {msg.sender === 'business' && (
+                        <span className={`message-status ${selectedContact?.replyStatus === 'failed' ? 'failed' : msg.status}`}>
+                          {selectedContact?.replyStatus === 'failed' ? '✗' : msg.status === 'sent' ? '✓' : '✓✓'}
                         </span>
                       )}
                     </div>
@@ -463,24 +463,13 @@ const Messages: React.FC = () => {
               ))}
             </div>
 
-            {/* Message Input */}
+            {/* Reply Status Footer */}
             <div className="conversation-footer">
-              <div className="message-input-container">
-                <input
-                  type="text"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                  placeholder="Type a message..."
-                  className="message-input"
-                />
-                <button 
-                  className="send-btn" 
-                  onClick={handleSendMessage}
-                  disabled={!newMessage.trim()}
-                >
-                  <MdSend />
-                </button>
+              <div className={`reply-status-bar ${selectedContact.replyStatus}`}>
+                {selectedContact.replyStatus === 'sent' && <><MdCheckCircle /> Auto-reply sent successfully</>}
+                {selectedContact.replyStatus === 'failed' && <><MdError /> Auto-reply failed to send</>}
+                {selectedContact.replyStatus === 'pending' && <><MdRefresh /> Auto-reply pending...</>}
+                {!selectedContact.replyContent && <span style={{opacity: 0.6}}>No auto-reply configured</span>}
               </div>
             </div>
           </div>

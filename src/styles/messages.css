@@ -544,50 +544,29 @@
   background-color: var(--bg-primary);
 }
 
-.message-input-container {
+.reply-status-bar {
   display: flex;
-  gap: 0.625rem;
   align-items: center;
-}
-
-.message-input {
-  flex: 1;
-  padding: 0.625rem 1rem;
-  border: 1px solid var(--border-light);
-  border-radius: 8px;
+  gap: 0.5rem;
   font-size: 0.875rem;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  transition: all 0.15s;
-}
-
-.message-input:focus {
-  outline: none;
-  border-color: var(--primary);
-}
-
-.send-btn {
-  width: 40px;
-  height: 40px;
+  font-weight: 500;
+  padding: 0.5rem 0.75rem;
   border-radius: 8px;
-  background-color: var(--primary);
-  color: var(--text-white);
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.125rem;
-  transition: all 0.15s;
 }
 
-.send-btn:hover:not(:disabled) {
-  background-color: var(--primary-dark);
+.reply-status-bar.sent {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
 }
 
-.send-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.reply-status-bar.failed {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+.reply-status-bar.pending {
+  background-color: rgba(234, 179, 8, 0.1);
+  color: #ca8a04;
 }
 
 /* Animations */

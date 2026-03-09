@@ -156,6 +156,8 @@ export interface Message {
   senderNumber: string;
   messageType: string;
   messageContent: string;
+  replyContent: string | null;
+  replyMessageId: string | null;
   direction: string;
   replyStatus: string;
   whatsappMessageId: string | null;
