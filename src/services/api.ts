@@ -8,6 +8,7 @@ import type {
   WebhookConfig,
   Campaign,
   Message,
+  FileUpload,
   LoginRequest,
   CreateUserRequest,
   UpdateUserRequest,
@@ -17,6 +18,7 @@ import type {
   CreateCampaignRequest,
   UpdateCampaignRequest,
   CreateMessageRequest,
+  UploadFileRequest,
 } from '../types/api.types';
 
 // Generic fetch wrapper with error handling
@@ -237,5 +239,16 @@ export async function createMessage(data: CreateMessageRequest): Promise<ApiResp
 export async function deleteMessage(id: string): Promise<ApiResponse<Message>> {
   return apiRequest<Message>(API_ENDPOINTS.messages.delete(id), {
     method: 'DELETE',
+  });
+}
+
+// ============================================
+// File Upload API
+// ============================================
+
+export async function uploadFile(data: UploadFileRequest): Promise<ApiResponse<FileUpload>> {
+  return apiRequest<FileUpload>('/api/uploads', {
+    method: 'POST',
+    body: JSON.stringify(data),
   });
 }

@@ -105,6 +105,8 @@ export interface Campaign {
   userId: string;
   name: string;
   fixedReply: string;
+  replyType: 'text' | 'image'; // 'text' or 'image'
+  replyImageUrl?: string; // Image URL if replyType is 'image'
   isActive: boolean;
   messageCount: number;
   createdAt: string;
@@ -115,13 +117,35 @@ export interface CreateCampaignRequest {
   userId: string;
   name: string;
   fixedReply: string;
+  replyType?: 'text' | 'image';
+  replyImageUrl?: string;
   isActive?: boolean;
 }
 
 export interface UpdateCampaignRequest {
   name?: string;
   fixedReply?: string;
+  replyType?: 'text' | 'image';
+  replyImageUrl?: string;
   isActive?: boolean;
+}
+
+// Upload types
+export interface FileUpload {
+  id: string;
+  userId: string;
+  fileName: string;
+  mimeType: string;
+  url: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UploadFileRequest {
+  userId: string;
+  fileName: string;
+  mimeType: string;
+  fileData: string; // base64-encoded
 }
 
 // Message types
