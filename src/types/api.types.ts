@@ -105,8 +105,9 @@ export interface Campaign {
   userId: string;
   name: string;
   fixedReply: string;
-  replyType: 'text' | 'image'; // 'text' or 'image'
-  replyImageUrl?: string; // Image URL if replyType is 'image'
+  replyType: 'text' | 'image' | 'ai';
+  replyImageUrl?: string;
+  aiAgentId?: string | null;
   isActive: boolean;
   messageCount: number;
   createdAt: string;
@@ -116,17 +117,19 @@ export interface Campaign {
 export interface CreateCampaignRequest {
   userId: string;
   name: string;
-  fixedReply: string;
-  replyType?: 'text' | 'image';
+  fixedReply?: string;
+  replyType?: 'text' | 'image' | 'ai';
   replyImageUrl?: string;
+  aiAgentId?: string;
   isActive?: boolean;
 }
 
 export interface UpdateCampaignRequest {
   name?: string;
   fixedReply?: string;
-  replyType?: 'text' | 'image';
+  replyType?: 'text' | 'image' | 'ai';
   replyImageUrl?: string;
+  aiAgentId?: string;
   isActive?: boolean;
 }
 

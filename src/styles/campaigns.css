@@ -646,3 +646,277 @@
     padding: 3rem 1.5rem;
   }
 }
+
+/* ============================================
+   AI Agent Campaign Styles
+   ============================================ */
+
+/* Reply type badge on campaign card */
+.reply-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.625rem;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.reply-type-badge.text {
+  background-color: rgba(99, 102, 241, 0.1);
+  color: var(--primary);
+}
+
+.reply-type-badge.image {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.reply-type-badge.ai {
+  background-color: rgba(168, 85, 247, 0.12);
+  color: #7c3aed;
+}
+
+/* AI Agent preview row on campaign card */
+.ai-agent-preview {
+  margin-bottom: 1rem;
+}
+
+.ai-agent-preview label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.agent-info-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  background: rgba(168, 85, 247, 0.07);
+  border: 1px solid rgba(168, 85, 247, 0.15);
+  border-radius: 8px;
+}
+
+.agent-info-row .agent-icon {
+  font-size: 1.125rem;
+  color: #7c3aed;
+  flex-shrink: 0;
+}
+
+.agent-info-row span {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.agent-title-small {
+  font-size: 0.8rem !important;
+  font-weight: 400 !important;
+  color: var(--text-secondary) !important;
+}
+
+/* Stat icon for AI campaigns */
+.campaigns-stats .stat-icon.ai {
+  background-color: rgba(168, 85, 247, 0.1);
+  color: #7c3aed;
+}
+
+/* No agents warning */
+.no-agents-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.875rem 1rem;
+  background: rgba(234, 179, 8, 0.08);
+  border: 1px solid rgba(234, 179, 8, 0.25);
+  border-radius: 8px;
+  color: #92400e;
+  font-size: 0.875rem;
+}
+
+.no-agents-warning svg {
+  font-size: 1.25rem;
+  color: #ca8a04;
+  flex-shrink: 0;
+}
+
+.no-agents-warning a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.no-agents-warning p {
+  margin: 0;
+}
+
+/* Agent search wrapper */
+.agent-search-wrapper {
+  position: relative;
+}
+
+.agent-search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon-inside {
+  position: absolute;
+  left: 0.75rem;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
+.agent-search-input {
+  padding-left: 2.25rem !important;
+  padding-right: 2.25rem !important;
+}
+
+.clear-agent-btn {
+  position: absolute;
+  right: 0.625rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  padding: 0.2rem;
+  border-radius: 4px;
+}
+
+.clear-agent-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+
+/* Agent dropdown */
+.agent-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 100;
+  overflow: hidden;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.agent-dropdown-empty {
+  padding: 1rem;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.agent-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.agent-dropdown-item:hover {
+  background: var(--bg-secondary);
+}
+
+.agent-dropdown-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(168, 85, 247, 0.12);
+  color: #7c3aed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.agent-dropdown-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.agent-dropdown-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.agent-dropdown-title {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.agent-dropdown-status {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 20px;
+}
+
+.agent-dropdown-status.active {
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+}
+
+.agent-dropdown-status.inactive {
+  background: rgba(148, 163, 184, 0.15);
+  color: var(--text-secondary);
+}
+
+/* Selected agent card */
+.selected-agent-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(168, 85, 247, 0.06);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  border-radius: 8px;
+}
+
+.selected-check {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #16a34a;
+  white-space: nowrap;
+}
+
+/* OpenAI API key input */
+.api-key-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.key-icon {
+  position: absolute;
+  left: 0.75rem;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
+.api-key-input {
+  padding-left: 2.25rem !important;
+  letter-spacing: 0.05em;
+}
+
