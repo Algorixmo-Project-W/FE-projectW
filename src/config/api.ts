@@ -49,6 +49,8 @@ export const API_ENDPOINTS = {
     getByCampaignId: (campaignId: string) => `/api/messages/campaign/${campaignId}`,
     getById: (id: string) => `/api/messages/${id}`,
     delete: (id: string) => `/api/messages/${id}`,
+    getThreads: (campaignId: string) => `/api/messages/threads/${campaignId}`,
+    getThread: (campaignId: string, senderNumber: string) => `/api/messages/thread/${campaignId}/${encodeURIComponent(senderNumber)}`,
   },
 
   // AI Agents

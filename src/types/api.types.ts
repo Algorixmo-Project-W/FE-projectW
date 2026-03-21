@@ -168,6 +168,24 @@ export interface Message {
   createdAt: string;
 }
 
+// Thread list item (GET /api/messages/threads/:campaignId)
+export interface MessageThread {
+  senderNumber: string;
+  messageCount: number;
+  latestAt: string;
+  lastMessageContent: string;
+  lastReplyContent: string | null;
+  lastReplyStatus: string;
+  lastMessageId: string;
+}
+
+// Full chat history item (GET /api/messages/thread/:campaignId/:senderNumber)
+export interface ThreadMessage {
+  messageContent: string;
+  replyContent: string | null;
+  receivedAt: string;
+}
+
 export interface CreateMessageRequest {
   userId: string;
   campaignId?: string;

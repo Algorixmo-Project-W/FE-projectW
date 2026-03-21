@@ -8,6 +8,8 @@ import type {
   WebhookConfig,
   Campaign,
   Message,
+  MessageThread,
+  ThreadMessage,
   FileUpload,
   AiAgent,
   LoginRequest,
@@ -242,6 +244,18 @@ export async function createMessage(data: CreateMessageRequest): Promise<ApiResp
 export async function deleteMessage(id: string): Promise<ApiResponse<Message>> {
   return apiRequest<Message>(API_ENDPOINTS.messages.delete(id), {
     method: 'DELETE',
+  });
+}
+
+export async function getMessageThreads(campaignId: string): Promise<ApiResponse<MessageThread[]>> {
+  return apiRequest<MessageThread[]>(API_ENDPOINTS.messages.getThreads(campaignId), {
+    method: 'GET',
+  });
+}
+
+export async function getThreadMessages(campaignId: string, senderNumber: string): Promise<ApiResponse<ThreadMessage[]>> {
+  return apiRequest<ThreadMessage[]>(API_ENDPOINTS.messages.getThread(campaignId, senderNumber), {
+    method: 'GET',
   });
 }
 

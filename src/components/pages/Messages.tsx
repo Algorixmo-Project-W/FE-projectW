@@ -1,226 +1,201 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { 
-  MdSearch, 
-  MdFilterList, 
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import {
+  MdSearch,
+  MdFilterList,
   MdDownload,
   MdMessage,
   MdImage,
   MdCheckCircle,
   MdError,
   MdRefresh,
-  MdClose
+  MdClose,
+  MdSmartToy,
+  MdArrowBack,
+  MdPerson,
 } from 'react-icons/md';
-import { getMessagesByUserId, getCampaignsByUserId } from '../../services/api';
+import { getCampaignsByUserId, getMessageThreads, getThreadMessages } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import type { Message as ApiMessage, Campaign } from '../../types/api.types';
-
-interface ConversationMessage {
-  id: string;
-  sender: 'customer' | 'business';
-  messageType: 'text' | 'image';
-  content: string;
-  timestamp: Date;
-  status?: 'sent' | 'delivered' | 'read';
-}
+import type { MessageThread, ThreadMessage, Campaign } from '../../types/api.types';
 
 const Messages: React.FC = () => {
   const { user } = useAuth();
-  const [messages, setMessages] = useState<ApiMessage[]>([]);
+
+  // ---------- Data state ----------
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [threads, setThreads] = useState<MessageThread[]>([]);
+  const [chatHistory, setChatHistory] = useState<ThreadMessage[]>([]);
+
+  // ---------- Loading / error ----------
+  const [loadingCampaigns, setLoadingCampaigns] = useState(true);
+  const [loadingThreads, setLoadingThreads] = useState(false);
+  const [loadingChat, setLoadingChat] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCampaign, setSelectedCampaign] = useState<string>('all');
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  
-  // Conversation modal state
-  const [isConversationOpen, setIsConversationOpen] = useState(false);
-  const [selectedContact, setSelectedContact] = useState<ApiMessage | null>(null);
-  const [conversationMessages, setConversationMessages] = useState<ConversationMessage[]>([]);
+  // ---------- Selection ----------
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string>('');
+  const [selectedThread, setSelectedThread] = useState<MessageThread | null>(null);
 
+  // ---------- Filters ----------
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+
+  // ---------- Chat scroll ----------
+  const chatBodyRef = useRef<HTMLDivElement>(null);
+
+  // ──────────────────────────────────────────
+  // Initial load: fetch campaigns
+  // ──────────────────────────────────────────
   useEffect(() => {
-    if (user) {
-      fetchData();
-    }
+    if (user) fetchCampaigns();
   }, [user]);
 
-  const fetchData = async () => {
+  const fetchCampaigns = async () => {
     if (!user) return;
-    setLoading(true);
+    setLoadingCampaigns(true);
     setError(null);
-    
-    try {
-      const [messagesResult, campaignsResult] = await Promise.all([
-        getMessagesByUserId(user.id),
-        getCampaignsByUserId(user.id)
-      ]);
-
-      if (messagesResult.success && messagesResult.data) {
-        setMessages(messagesResult.data);
-      } else {
-        setError(messagesResult.message || 'Failed to fetch messages');
+    const result = await getCampaignsByUserId(user.id);
+    if (result.success && result.data) {
+      setCampaigns(result.data);
+      if (result.data.length > 0) {
+        const first = result.data[0];
+        setSelectedCampaignId(first.id);
+        fetchThreads(first.id);
       }
-
-      if (campaignsResult.success && campaignsResult.data) {
-        setCampaigns(campaignsResult.data);
-      }
-    } finally {
-      setLoading(false);
+    } else {
+      setError(result.message || 'Failed to fetch campaigns');
     }
+    setLoadingCampaigns(false);
   };
 
-  // Get campaign name by ID
-  const getCampaignName = (campaignId: string | null): string => {
-    if (!campaignId) return 'N/A';
-    const campaign = campaigns.find(c => c.id === campaignId);
-    return campaign?.name || 'Unknown';
+  // ──────────────────────────────────────────
+  // Fetch thread list for a campaign
+  // ──────────────────────────────────────────
+  const fetchThreads = async (campaignId: string) => {
+    setLoadingThreads(true);
+    setError(null);
+    setSelectedThread(null);
+    setChatHistory([]);
+    const result = await getMessageThreads(campaignId);
+    if (result.success && result.data) {
+      setThreads(result.data);
+    } else {
+      setError(result.message || 'Failed to fetch threads');
+      setThreads([]);
+    }
+    setLoadingThreads(false);
   };
 
-  // Filter messages
-  const filteredMessages = useMemo(() => {
-    return messages.filter(message => {
-      // Search filter (phone number or message content)
-      const matchesSearch = 
-        message.senderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        message.messageContent.toLowerCase().includes(searchQuery.toLowerCase());
+  // ──────────────────────────────────────────
+  // Open a thread → fetch full chat history
+  // ──────────────────────────────────────────
+  const handleOpenThread = async (thread: MessageThread) => {
+    setSelectedThread(thread);
+    setLoadingChat(true);
+    setChatHistory([]);
+    const result = await getThreadMessages(selectedCampaignId, thread.senderNumber);
+    if (result.success && result.data) {
+      setChatHistory(result.data);
+    } else {
+      setError(result.message || 'Failed to load conversation');
+    }
+    setLoadingChat(false);
+  };
 
-      // Campaign filter
-      const matchesCampaign = 
-        selectedCampaign === 'all' || message.campaignId === selectedCampaign;
+  // Scroll chat to bottom when history loads
+  useEffect(() => {
+    if (chatBodyRef.current) {
+      chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
+    }
+  }, [chatHistory]);
 
-      // Status filter
-      const matchesStatus = 
-        selectedStatus === 'all' || message.replyStatus === selectedStatus;
+  // ──────────────────────────────────────────
+  // Campaign switch
+  // ──────────────────────────────────────────
+  const handleCampaignChange = (campaignId: string) => {
+    setSelectedCampaignId(campaignId);
+    setSearchQuery('');
+    setSelectedStatus('all');
+    fetchThreads(campaignId);
+  };
 
-      return matchesSearch && matchesCampaign && matchesStatus;
+  // ──────────────────────────────────────────
+  // Filtered thread list
+  // ──────────────────────────────────────────
+  const filteredThreads = useMemo(() => {
+    return threads.filter(t => {
+      const matchesSearch =
+        t.senderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.lastMessageContent.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus =
+        selectedStatus === 'all' || t.lastReplyStatus === selectedStatus;
+      return matchesSearch && matchesStatus;
     });
-  }, [messages, searchQuery, selectedCampaign, selectedStatus]);
+  }, [threads, searchQuery, selectedStatus]);
 
-  // Export to CSV
-  const handleExportCSV = () => {
-    const headers = ['Phone Number', 'Message Type', 'Message Content', 'Campaign', 'Reply Status', 'Received At'];
-    const csvData = filteredMessages.map(msg => [
-      msg.senderNumber,
-      msg.messageType,
-      msg.messageContent,
-      getCampaignName(msg.campaignId),
-      msg.replyStatus,
-      msg.receivedAt
-    ]);
+  // ──────────────────────────────────────────
+  // Helpers
+  // ──────────────────────────────────────────
+  const getCampaignName = (id: string) =>
+    campaigns.find(c => c.id === id)?.name || 'Unknown Campaign';
 
-    const csvContent = [
-      headers.join(','),
-      ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n');
+  const getCampaignType = (id: string) =>
+    campaigns.find(c => c.id === id)?.replyType || 'text';
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `messages_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'sent':
-        return <MdCheckCircle className="status-icon success" />;
-      case 'failed':
-        return <MdError className="status-icon error" />;
-      case 'pending':
-        return <MdRefresh className="status-icon pending" />;
-      default:
-        return null;
-    }
-  };
-
-  const formatTimestamp = (dateStr: string) => {
-    return new Date(dateStr).toLocaleString('en-US', {
+  const formatTime = (iso: string) =>
+    new Date(iso).toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
-  };
 
-  // Open conversation modal
-  const handleOpenConversation = (message: ApiMessage) => {
-    setSelectedContact(message);
-    
-    // Load conversation history for this contact
-    const msgTimestamp = new Date(message.receivedAt);
-    const conversationData: ConversationMessage[] = [
-      {
-        id: '1',
-        sender: 'customer',
-        messageType: message.messageType as 'text' | 'image',
-        content: message.messageContent,
-        timestamp: msgTimestamp,
-        status: 'read'
-      }
-    ];
-    
-    // Add reply if it exists
-    if (message.replyContent) {
-      // Parse image replies: "[Image: URL] caption" format
-      const imageMatch = message.replyContent.match(/^\[Image: (.+?)\]\s*(.*)$/);
-      if (imageMatch) {
-        const imageUrl = imageMatch[1];
-        const caption = imageMatch[2];
-        // Add image bubble
-        conversationData.push({
-          id: '2',
-          sender: 'business',
-          messageType: 'image',
-          content: imageUrl,
-          timestamp: new Date(message.createdAt),
-          status: message.replyStatus === 'sent' ? 'delivered' : 'sent'
-        });
-        // Add caption as separate text bubble if exists
-        if (caption) {
-          conversationData.push({
-            id: '3',
-            sender: 'business',
-            messageType: 'text',
-            content: caption,
-            timestamp: new Date(message.createdAt),
-            status: message.replyStatus === 'sent' ? 'delivered' : 'sent'
-          });
-        }
-      } else {
-        conversationData.push({
-          id: '2',
-          sender: 'business',
-          messageType: 'text',
-          content: message.replyContent,
-          timestamp: new Date(message.createdAt),
-          status: message.replyStatus === 'sent' ? 'delivered' : 'sent'
-        });
-      }
+  const formatChatTime = (iso: string) =>
+    new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'sent':
+        return <span className="thread-status sent"><MdCheckCircle /> Sent</span>;
+      case 'failed':
+        return <span className="thread-status failed"><MdError /> Failed</span>;
+      case 'pending':
+        return <span className="thread-status pending"><MdRefresh /> Pending</span>;
+      default:
+        return <span className="thread-status">{status}</span>;
     }
-    
-    setConversationMessages(conversationData);
-    setIsConversationOpen(true);
   };
 
-  // Close conversation modal
-  const handleCloseConversation = () => {
-    setIsConversationOpen(false);
-    setSelectedContact(null);
-    setConversationMessages([]);
+  const replyTypeIcon = (type: string) => {
+    if (type === 'image') return <MdImage />;
+    if (type === 'ai') return <MdSmartToy />;
+    return <MdMessage />;
   };
 
-  const formatConversationTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  // ──────────────────────────────────────────
+  // Export CSV
+  // ──────────────────────────────────────────
+  const handleExportCSV = () => {
+    const headers = ['Phone Number', 'Messages', 'Last Message', 'Last Reply', 'Status', 'Latest At'];
+    const rows = filteredThreads.map(t => [
+      t.senderNumber,
+      t.messageCount,
+      t.lastMessageContent,
+      t.lastReplyContent ?? '',
+      t.lastReplyStatus,
+      t.latestAt,
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `messages_${selectedCampaignId}_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
   };
+
+  // ──────────────────────────────────────────
+  // Render
+  // ──────────────────────────────────────────
+  const campaignType = getCampaignType(selectedCampaignId);
 
   return (
     <div className="messages-page">
@@ -229,22 +204,26 @@ const Messages: React.FC = () => {
         <div className="header-content">
           <div>
             <h1>Messages</h1>
-            <p>View and manage incoming WhatsApp messages</p>
+            <p>View conversations per campaign</p>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button className="btn secondary" onClick={fetchData} disabled={loading}>
-              <MdRefresh className={loading ? 'spinning' : ''} />
+            <button
+              className="btn secondary"
+              onClick={() => selectedCampaignId && fetchThreads(selectedCampaignId)}
+              disabled={loadingThreads || !selectedCampaignId}
+            >
+              <MdRefresh className={loadingThreads ? 'spinning' : ''} />
               Refresh
             </button>
-            <button className="btn primary" onClick={handleExportCSV}>
+            <button className="btn primary" onClick={handleExportCSV} disabled={filteredThreads.length === 0}>
               <MdDownload />
-              Export to CSV
+              Export CSV
             </button>
           </div>
         </div>
       </div>
 
-      {/* Error Message */}
+      {/* Error */}
       {error && (
         <div className="error-banner">
           <p>{error}</p>
@@ -252,228 +231,229 @@ const Messages: React.FC = () => {
         </div>
       )}
 
-      {/* Stats Cards */}
+      {/* Stats */}
       <div className="messages-stats">
         <div className="stat-card">
-          <div className="stat-icon primary">
-            <MdMessage />
-          </div>
+          <div className="stat-icon primary"><MdMessage /></div>
           <div className="stat-info">
-            <h3>{messages.length}</h3>
-            <p>Total Messages</p>
+            <h3>{threads.length}</h3>
+            <p>Total Conversations</p>
           </div>
         </div>
-        
         <div className="stat-card">
-          <div className="stat-icon success">
-            <MdCheckCircle />
-          </div>
+          <div className="stat-icon success"><MdCheckCircle /></div>
           <div className="stat-info">
-            <h3>{messages.filter(m => m.replyStatus === 'sent').length}</h3>
-            <p>Successfully Replied</p>
+            <h3>{threads.filter(t => t.lastReplyStatus === 'sent').length}</h3>
+            <p>Replied</p>
           </div>
         </div>
-        
         <div className="stat-card">
-          <div className="stat-icon error">
-            <MdError />
-          </div>
+          <div className="stat-icon error"><MdError /></div>
           <div className="stat-info">
-            <h3>{messages.filter(m => m.replyStatus === 'failed').length}</h3>
-            <p>Failed Replies</p>
+            <h3>{threads.filter(t => t.lastReplyStatus === 'failed').length}</h3>
+            <p>Failed</p>
           </div>
         </div>
       </div>
 
-      {/* Filters and Search */}
-      <div className="messages-filters">
-        <div className="search-box">
-          <MdSearch className="search-icon" />
-          <input
-            type="text"
-            placeholder="Search by phone number or message content..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="search-input"
-          />
-        </div>
-
-        <div className="filter-group">
-          <div className="filter-item">
-            <MdFilterList />
-            <select
-              value={selectedCampaign}
-              onChange={(e) => setSelectedCampaign(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">All Campaigns</option>
-              {campaigns.map(campaign => (
-                <option key={campaign.id} value={campaign.id}>
-                  {campaign.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="filter-item">
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">All Status</option>
-              <option value="sent">Sent</option>
-              <option value="failed">Failed</option>
-              <option value="pending">Pending</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Results Info */}
-      <div className="results-info">
-        <p>
-          Showing <strong>{filteredMessages.length}</strong> of <strong>{messages.length}</strong> messages
-        </p>
-      </div>
-
-      {/* Messages Table */}
-      <div className="messages-table-container">
-        {loading ? (
-          <div className="loading-state">
-            <div className="spinner"></div>
-            <p>Loading messages...</p>
-          </div>
+      {/* Campaign Selector */}
+      <div className="campaign-selector-bar">
+        <MdFilterList className="selector-icon" />
+        <span className="selector-label">Campaign:</span>
+        {loadingCampaigns ? (
+          <span className="selector-loading">Loading...</span>
         ) : (
-        <table className="messages-table">
-          <thead>
-            <tr>
-              <th>Phone Number</th>
-              <th>Type</th>
-              <th>Message</th>
-              <th>Campaign</th>
-              <th>Status</th>
-              <th>Received At</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredMessages.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="empty-row">
-                  <div className="empty-state">
-                    <MdMessage className="empty-icon" />
-                    <p>No messages found</p>
-                  </div>
-                </td>
-              </tr>
-            ) : (
-              filteredMessages.map(message => (
-                <tr 
-                  key={message.id} 
-                  onClick={() => handleOpenConversation(message)}
-                  className="clickable-row"
-                >
-                  <td>
-                    <span className="phone-number">{message.senderNumber}</span>
-                  </td>
-                  <td>
-                    <div className="message-type">
-                      {message.messageType === 'text' ? (
-                        <MdMessage className="type-icon" />
-                      ) : (
-                        <MdImage className="type-icon" />
-                      )}
-                      <span>{message.messageType}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="message-content">
-                      {message.messageType === 'text' ? (
-                        <p>{message.messageContent}</p>
-                      ) : (
-                        <a href={message.messageContent} target="_blank" rel="noopener noreferrer">
-                          View Image
-                        </a>
-                      )}
-                    </div>
-                  </td>
-                  <td>
-                    <span className="campaign-badge">{getCampaignName(message.campaignId)}</span>
-                  </td>
-                  <td>
-                    <div className={`status-badge ${message.replyStatus}`}>
-                      {getStatusIcon(message.replyStatus)}
-                      <span>{message.replyStatus}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="timestamp">{formatTimestamp(message.receivedAt)}</span>
-                  </td>
-                </tr>
-              ))
+          <div className="campaign-tabs">
+            {campaigns.map(c => (
+              <button
+                key={c.id}
+                className={`campaign-tab ${selectedCampaignId === c.id ? 'active' : ''}`}
+                onClick={() => handleCampaignChange(c.id)}
+              >
+                <span className={`tab-type-dot ${c.replyType}`}>{replyTypeIcon(c.replyType)}</span>
+                {c.name}
+              </button>
+            ))}
+            {campaigns.length === 0 && (
+              <span className="no-campaigns-hint">No campaigns found. Create one first.</span>
             )}
-          </tbody>
-        </table>
+          </div>
         )}
       </div>
 
-      {/* Conversation Modal */}
-      {isConversationOpen && selectedContact && (
-        <div className="modal-overlay" onClick={handleCloseConversation}>
-          <div className="conversation-modal" onClick={(e) => e.stopPropagation()}>
-            {/* Modal Header */}
-            <div className="conversation-header">
-              <div className="contact-info">
-                <div className="contact-avatar">
-                  {selectedContact.senderNumber.slice(-2)}
-                </div>
-                <div>
-                  <h3>{selectedContact.senderNumber}</h3>
-                  <p className="contact-campaign">{getCampaignName(selectedContact.campaignId)}</p>
-                </div>
+      {/* Main Panel */}
+      {selectedCampaignId ? (
+        <div className="messages-panel">
+          {/* Thread List Pane */}
+          <div className={`thread-list-pane ${selectedThread ? 'hide-mobile' : ''}`}>
+            <div className="thread-list-header">
+              <div className="thread-search-wrap">
+                <MdSearch className="thread-search-icon" />
+                <input
+                  type="text"
+                  className="thread-search-input"
+                  placeholder="Search phone or message..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button className="thread-search-clear" onClick={() => setSearchQuery('')}>
+                    <MdClose />
+                  </button>
+                )}
               </div>
-              <button className="close-btn" onClick={handleCloseConversation}>
-                <MdClose />
-              </button>
+              <select
+                className="filter-select thread-status-filter"
+                value={selectedStatus}
+                onChange={e => setSelectedStatus(e.target.value)}
+              >
+                <option value="all">All Status</option>
+                <option value="sent">Sent</option>
+                <option value="failed">Failed</option>
+                <option value="pending">Pending</option>
+              </select>
             </div>
 
-            {/* Messages Area */}
-            <div className="conversation-body">
-              {conversationMessages.map(msg => (
-                <div 
-                  key={msg.id} 
-                  className={`conversation-message ${msg.sender}`}
-                >
-                  <div className="message-bubble">
-                    {msg.messageType === 'text' ? (
-                      <p>{msg.content}</p>
-                    ) : (
-                      <img src={msg.content} alt="Message attachment" className="message-image" />
-                    )}
-                    <div className="message-meta">
-                      <span className="message-time">{formatConversationTime(msg.timestamp)}</span>
-                      {msg.sender === 'business' && (
-                        <span className={`message-status ${selectedContact?.replyStatus === 'failed' ? 'failed' : msg.status}`}>
-                          {selectedContact?.replyStatus === 'failed' ? '✗' : msg.status === 'sent' ? '✓' : '✓✓'}
-                        </span>
-                      )}
+            <div className="thread-list-count">
+              {filteredThreads.length} conversation{filteredThreads.length !== 1 ? 's' : ''}
+            </div>
+
+            {loadingThreads ? (
+              <div className="thread-loading">
+                <div className="spinner"></div>
+                <p>Loading conversations...</p>
+              </div>
+            ) : filteredThreads.length === 0 ? (
+              <div className="thread-empty">
+                <MdMessage className="empty-icon" />
+                <p>No conversations found</p>
+              </div>
+            ) : (
+              <div className="thread-items">
+                {filteredThreads.map(thread => (
+                  <div
+                    key={thread.senderNumber}
+                    className={`thread-item ${selectedThread?.senderNumber === thread.senderNumber ? 'active' : ''}`}
+                    onClick={() => handleOpenThread(thread)}
+                  >
+                    <div className="thread-avatar">
+                      <MdPerson />
+                    </div>
+                    <div className="thread-info">
+                      <div className="thread-top-row">
+                        <span className="thread-number">{thread.senderNumber}</span>
+                        <span className="thread-time">{formatTime(thread.latestAt)}</span>
+                      </div>
+                      <div className="thread-preview-row">
+                        <span className="thread-preview">{thread.lastMessageContent}</span>
+                        <span className="thread-count">{thread.messageCount}</span>
+                      </div>
+                      <div className="thread-status-row">
+                        {getStatusBadge(thread.lastReplyStatus)}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Reply Status Footer */}
-            <div className="conversation-footer">
-              <div className={`reply-status-bar ${selectedContact.replyStatus}`}>
-                {selectedContact.replyStatus === 'sent' && <><MdCheckCircle /> Auto-reply sent successfully</>}
-                {selectedContact.replyStatus === 'failed' && <><MdError /> Auto-reply failed to send</>}
-                {selectedContact.replyStatus === 'pending' && <><MdRefresh /> Auto-reply pending...</>}
-                {!selectedContact.replyContent && <span style={{opacity: 0.6}}>No auto-reply configured</span>}
+                ))}
               </div>
-            </div>
+            )}
+          </div>
+
+          {/* Chat Pane */}
+          <div className={`chat-pane ${!selectedThread ? 'show-empty' : ''}`}>
+            {!selectedThread ? (
+              <div className="chat-empty-state">
+                <MdMessage className="chat-empty-icon" />
+                <h3>Select a conversation</h3>
+                <p>Choose a contact from the list to view the full chat history</p>
+              </div>
+            ) : (
+              <>
+                {/* Chat header */}
+                <div className="chat-header">
+                  <button className="back-btn" onClick={() => setSelectedThread(null)}>
+                    <MdArrowBack />
+                  </button>
+                  <div className="chat-contact-avatar">
+                    <MdPerson />
+                  </div>
+                  <div className="chat-contact-info">
+                    <h3>{selectedThread.senderNumber}</h3>
+                    <p>
+                      <span className={`campaign-type-pill ${campaignType}`}>
+                        {replyTypeIcon(campaignType)}
+                        {getCampaignName(selectedCampaignId)}
+                      </span>
+                      &nbsp;· {selectedThread.messageCount} messages
+                    </p>
+                  </div>
+                  <div className="chat-header-status">
+                    {getStatusBadge(selectedThread.lastReplyStatus)}
+                  </div>
+                </div>
+
+                {/* Chat messages */}
+                <div className="chat-body" ref={chatBodyRef}>
+                  {loadingChat ? (
+                    <div className="chat-loading">
+                      <div className="spinner"></div>
+                      <p>Loading messages...</p>
+                    </div>
+                  ) : chatHistory.length === 0 ? (
+                    <div className="chat-no-messages">No messages in this conversation.</div>
+                  ) : (
+                    chatHistory.map((msg, idx) => (
+                      <React.Fragment key={idx}>
+                        {/* Incoming */}
+                        <div className="chat-message incoming">
+                          <div className="chat-bubble incoming">
+                            <p>{msg.messageContent}</p>
+                            <span className="chat-time">{formatChatTime(msg.receivedAt)}</span>
+                          </div>
+                        </div>
+                        {/* Outgoing reply */}
+                        {msg.replyContent && (
+                          <div className="chat-message outgoing">
+                            <div className="chat-bubble outgoing">
+                              {(() => {
+                                const imgMatch = msg.replyContent!.match(/^\[Image: (.+?)\]\s*(.*)$/);
+                                if (imgMatch) {
+                                  return (
+                                    <>
+                                      <img src={imgMatch[1]} alt="reply" className="chat-reply-image" />
+                                      {imgMatch[2] && <p>{imgMatch[2]}</p>}
+                                    </>
+                                  );
+                                }
+                                return <p>{msg.replyContent}</p>;
+                              })()}
+                              <span className="chat-time">{formatChatTime(msg.receivedAt)}</span>
+                            </div>
+                          </div>
+                        )}
+                      </React.Fragment>
+                    ))
+                  )}
+                </div>
+
+                {/* Chat footer */}
+                <div className="chat-footer">
+                  <div className={`chat-footer-status ${selectedThread.lastReplyStatus}`}>
+                    {selectedThread.lastReplyStatus === 'sent' && <><MdCheckCircle /> Last auto-reply sent successfully</>}
+                    {selectedThread.lastReplyStatus === 'failed' && <><MdError /> Last auto-reply failed</>}
+                    {selectedThread.lastReplyStatus === 'pending' && <><MdRefresh /> Reply pending...</>}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
+      ) : (
+        !loadingCampaigns && (
+          <div className="no-campaign-state">
+            <MdMessage className="empty-icon" />
+            <p>No campaigns available. Create a campaign first.</p>
+          </div>
+        )
       )}
     </div>
   );
