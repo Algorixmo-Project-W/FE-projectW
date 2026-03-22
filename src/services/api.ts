@@ -24,6 +24,8 @@ import type {
   UploadFileRequest,
   CreateAiAgentRequest,
   UpdateAiAgentRequest,
+  AiIntegration,
+  SetAiIntegrationRequest,
 } from '../types/api.types';
 
 // Generic fetch wrapper with error handling
@@ -296,6 +298,28 @@ export async function updateAiAgent(id: string, data: UpdateAiAgentRequest): Pro
 
 export async function deleteAiAgent(id: string): Promise<ApiResponse<void>> {
   return apiRequest<void>(API_ENDPOINTS.aiAgents.delete(id), {
+    method: 'DELETE',
+  });
+}
+
+export async function getAiIntegrations(agentId: string): Promise<ApiResponse<AiIntegration>> {
+  return apiRequest<AiIntegration>(API_ENDPOINTS.aiAgents.getIntegrations(agentId), {
+    method: 'GET',
+  });
+}
+
+export async function setAiIntegrations(
+  agentId: string,
+  data: SetAiIntegrationRequest
+): Promise<ApiResponse<AiIntegration>> {
+  return apiRequest<AiIntegration>(API_ENDPOINTS.aiAgents.setIntegrations(agentId), {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteAiIntegrations(agentId: string): Promise<ApiResponse<void>> {
+  return apiRequest<void>(API_ENDPOINTS.aiAgents.deleteIntegrations(agentId), {
     method: 'DELETE',
   });
 }

@@ -60,5 +60,9 @@ export const API_ENDPOINTS = {
     getById: (id: string) => `/api/ai-agents/${id}`,
     update: (id: string) => `/api/ai-agents/${id}`,
     delete: (id: string) => `/api/ai-agents/${id}`,
+    // Integrations (meeting links)
+    getIntegrations: (agentId: string) => `/api/ai-agents/${agentId}/integrations`,
+    setIntegrations: (agentId: string) => `/api/ai-agents/${agentId}/integrations`,
+    deleteIntegrations: (agentId: string) => `/api/ai-agents/${agentId}/integrations`,
   },
 } as const;

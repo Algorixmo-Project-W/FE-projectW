@@ -223,6 +223,20 @@ export interface UpdateAiAgentRequest {
   isActive?: boolean;
 }
 
+// AI Agent Integrations (meeting links)
+export interface AiIntegration {
+  agentId: string;
+  zoom: string | null;
+  hubspot: string | null;
+  google: string | null;
+}
+
+export interface SetAiIntegrationRequest {
+  zoom?: string | null;
+  hubspot?: string | null;
+  google?: string | null;
+}
+
 // Update user request
 export interface UpdateUserRequest {
   email?: string;
