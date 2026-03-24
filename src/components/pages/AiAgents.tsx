@@ -139,15 +139,6 @@ const AiAgents: React.FC = () => {
     }
   };
 
-  const handleToggleStatus = async (agent: AiAgent) => {
-    const result = await updateAiAgent(agent.id, { isActive: !agent.isActive });
-    if (result.success) {
-      await fetchAgents();
-    } else {
-      setError(result.message || 'Failed to update agent status');
-    }
-  };
-
   // ── Integration modal handlers ───────────────────────────
   const handleOpenIntegrations = async (agent: AiAgent) => {
     setIntegrationAgent(agent);
