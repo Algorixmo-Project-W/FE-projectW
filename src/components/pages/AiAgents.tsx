@@ -409,6 +409,25 @@ const AiAgents: React.FC = () => {
                 <small className="form-help">Tell the agent how to behave, what topics to handle, and how to respond</small>
                 <div className="character-count">{formData.instructions.length} characters</div>
               </div>
+              {editingAgent && (
+                <div className="form-group">
+                  <label>Integrations</label>
+                  <button 
+                    className="btn secondary" 
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', width: '100%' }}
+                    type="button"
+                    onClick={() => {
+                      const agent = editingAgent;
+                      handleCloseModal();
+                      if (agent) handleOpenIntegrations(agent);
+                    }}
+                    disabled={saving}
+                  >
+                    <MdLink />
+                    Manage Meeting Integrations
+                  </button>
+                </div>
+              )}
               <div className="form-group">
                 <label htmlFor="agentStatus">Status</label>
                 <select
@@ -424,22 +443,6 @@ const AiAgents: React.FC = () => {
               </div>
             </div>
             <div className="modal-footer">
-              {editingAgent && (
-                <button 
-                  className="btn secondary" 
-                  style={{ marginRight: 'auto', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-                  type="button"
-                  onClick={() => {
-                    const agent = editingAgent;
-                    handleCloseModal();
-                    if (agent) handleOpenIntegrations(agent);
-                  }}
-                  disabled={saving}
-                >
-                  <MdLink />
-                  Meeting Integrations
-                </button>
-              )}
               <button className="btn secondary" onClick={handleCloseModal} disabled={saving}>Cancel</button>
               <button className="btn primary" onClick={handleSave} disabled={!isFormValid || saving}>
                 <MdSave />
