@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  MdAdd, 
-  MdEdit, 
-  MdDelete, 
+import {
+  MdAdd,
+  MdEdit,
+  MdDelete,
   MdCampaign,
   MdMessage,
   MdSave,
@@ -14,6 +14,7 @@ import {
   MdCleaningServices,
 } from 'react-icons/md';
 import { getCampaignsByUserId, createCampaign, updateCampaign, deleteCampaign, cleanCampaign, uploadFile, getAiAgentsByUserId } from '../../services/api';
+import { API_BASE_URL } from '../../config/api';
 import { compressImageWithTinyPNG, validateImageFile } from '../../services/imageCompression';
 import { useAuth } from '../../context/AuthContext';
 import type { Campaign, AiAgent } from '../../types/api.types';
@@ -34,8 +35,11 @@ const Campaigns: React.FC = () => {
     replyType: 'text' as 'text' | 'image' | 'ai',
     replyImageUrl: '',
     aiAgentId: '',
+    channel: 'whatsapp' as 'whatsapp' | 'web',
+    firstMessage: '',
     isActive: false,
   });
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -110,6 +114,8 @@ const Campaigns: React.FC = () => {
         replyType: campaign.replyType || 'text',
         replyImageUrl: campaign.replyImageUrl || '',
         aiAgentId: campaign.aiAgentId || '',
+        channel: campaign.channel || 'whatsapp',
+        firstMessage: campaign.firstMessage || '',
         isActive: campaign.isActive,
       });
       // Pre-fill search with agent name if editing an AI campaign
@@ -121,7 +127,7 @@ const Campaigns: React.FC = () => {
       }
     } else {
       setEditingCampaign(null);
-      setFormData({ name: '', fixedReply: '', replyType: 'text', replyImageUrl: '', aiAgentId: '', isActive: false });
+      setFormData({ name: '', fixedReply: '', replyType: 'text', replyImageUrl: '', aiAgentId: '', channel: 'whatsapp', firstMessage: '', isActive: false });
       setAgentSearch('');
     }
     setIsModalOpen(true);
@@ -130,7 +136,7 @@ const Campaigns: React.FC = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingCampaign(null);
-    setFormData({ name: '', fixedReply: '', replyType: 'text', replyImageUrl: '', aiAgentId: '', isActive: false });
+    setFormData({ name: '', fixedReply: '', replyType: 'text', replyImageUrl: '', aiAgentId: '', channel: 'whatsapp', firstMessage: '', isActive: false });
     setAgentSearch('');
     setShowAgentDropdown(false);
   };
@@ -148,6 +154,8 @@ const Campaigns: React.FC = () => {
       const baseData: any = {
         name: formData.name,
         replyType: formData.replyType,
+        channel: formData.channel,
+        firstMessage: formData.firstMessage || null,
         isActive: formData.isActive,
       };
 
@@ -344,6 +352,9 @@ const Campaigns: React.FC = () => {
                     {campaign.replyType === 'text' && <MdMessage />}
                     {getReplyTypeLabel(campaign.replyType)}
                   </span>
+                  <span className={`reply-type-badge ${campaign.channel === 'web' ? 'web' : 'whatsapp'}`}>
+                    {campaign.channel === 'web' ? '🌐 Web' : '📱 WhatsApp'}
+                  </span>
                   <span className={`status-badge ${campaign.isActive ? 'active' : 'inactive'}`}>
                     {campaign.isActive ? 'Active' : 'Inactive'}
                   </span>
@@ -399,6 +410,63 @@ const Campaigns: React.FC = () => {
                     <span className="meta-value">{campaign.messageCount}</span>
                   </div>
                 </div>
+
+                {/* Campaign ID + API endpoints */}
+                <div className="campaign-api-info">
+                  <div className="api-info-row">
+                    <span className="api-info-label">Campaign ID</span>
+                    <div className="api-info-value-wrap">
+                      <code className="api-info-code">{campaign.id}</code>
+                      <button
+                        className={`api-copy-btn ${copiedId === campaign.id + '_id' ? 'copied' : ''}`}
+                        onClick={() => {
+                          navigator.clipboard.writeText(campaign.id);
+                          setCopiedId(campaign.id + '_id');
+                          setTimeout(() => setCopiedId(null), 2000);
+                        }}
+                      >
+                        {copiedId === campaign.id + '_id' ? '✓ Copied' : 'Copy'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {campaign.channel === 'web' && (
+                    <>
+                      <div className="api-info-row">
+                        <span className="api-info-label">Chat Start URL</span>
+                        <div className="api-info-value-wrap">
+                          <code className="api-info-code">{`POST ${API_BASE_URL}/api/chat/${campaign.id}/start`}</code>
+                          <button
+                            className={`api-copy-btn ${copiedId === campaign.id + '_start' ? 'copied' : ''}`}
+                            onClick={() => {
+                              navigator.clipboard.writeText(`${API_BASE_URL}/api/chat/${campaign.id}/start`);
+                              setCopiedId(campaign.id + '_start');
+                              setTimeout(() => setCopiedId(null), 2000);
+                            }}
+                          >
+                            {copiedId === campaign.id + '_start' ? '✓ Copied' : 'Copy'}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="api-info-row">
+                        <span className="api-info-label">Send Message URL</span>
+                        <div className="api-info-value-wrap">
+                          <code className="api-info-code">{`POST ${API_BASE_URL}/api/chat/${campaign.id}/message`}</code>
+                          <button
+                            className={`api-copy-btn ${copiedId === campaign.id + '_msg' ? 'copied' : ''}`}
+                            onClick={() => {
+                              navigator.clipboard.writeText(`${API_BASE_URL}/api/chat/${campaign.id}/message`);
+                              setCopiedId(campaign.id + '_msg');
+                              setTimeout(() => setCopiedId(null), 2000);
+                            }}
+                          >
+                            {copiedId === campaign.id + '_msg' ? '✓ Copied' : 'Copy'}
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
 
               <div className="campaign-footer">
@@ -437,6 +505,37 @@ const Campaigns: React.FC = () => {
                 />
                 <small className="form-help">Give your campaign a descriptive name for easy identification</small>
               </div>
+
+              {/* Channel */}
+              <div className="form-group">
+                <label htmlFor="channel">Channel *</label>
+                <select
+                  id="channel"
+                  value={formData.channel}
+                  onChange={(e) => setFormData({ ...formData, channel: e.target.value as 'whatsapp' | 'web' })}
+                  className="form-select"
+                >
+                  <option value="whatsapp">WhatsApp</option>
+                  <option value="web">Web Chat</option>
+                </select>
+                <small className="form-help">WhatsApp replies via the WhatsApp API. Web Chat is embedded on your website.</small>
+              </div>
+
+              {/* First message (web only) */}
+              {formData.channel === 'web' && (
+                <div className="form-group">
+                  <label htmlFor="firstMessage">First Message (Greeting)</label>
+                  <textarea
+                    id="firstMessage"
+                    value={formData.firstMessage}
+                    onChange={(e) => setFormData({ ...formData, firstMessage: e.target.value })}
+                    placeholder="e.g. Hi! How can I help you today?"
+                    className="form-textarea"
+                    rows={3}
+                  />
+                  <small className="form-help">This message is shown to the visitor when they open the chat. For AI campaigns, the AI generates this greeting automatically.</small>
+                </div>
+              )}
 
               {/* Content Type */}
               <div className="form-group">

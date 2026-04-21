@@ -108,6 +108,8 @@ export interface Campaign {
   replyType: 'text' | 'image' | 'ai';
   replyImageUrl?: string;
   aiAgentId?: string | null;
+  channel: 'whatsapp' | 'web';
+  firstMessage?: string | null;
   isActive: boolean;
   messageCount: number;
   createdAt: string;
@@ -121,6 +123,8 @@ export interface CreateCampaignRequest {
   replyType?: 'text' | 'image' | 'ai';
   replyImageUrl?: string;
   aiAgentId?: string;
+  channel?: 'whatsapp' | 'web';
+  firstMessage?: string;
   isActive?: boolean;
 }
 
@@ -130,7 +134,37 @@ export interface UpdateCampaignRequest {
   replyType?: 'text' | 'image' | 'ai';
   replyImageUrl?: string;
   aiAgentId?: string;
+  channel?: 'whatsapp' | 'web';
+  firstMessage?: string;
   isActive?: boolean;
+}
+
+// Web chat types
+export interface WebChatSession {
+  sessionId: string;
+  firstMessage: string | null;
+}
+
+export interface WebChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+}
+
+export interface WebChatReply {
+  reply: string | null;
+}
+
+export interface WebChatThread {
+  sessionId: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string | null;
+  messageCount: number;
+  latestAt: string;
+  lastMessageContent: string;
+  lastReplyContent: string | null;
+  lastReplyStatus: string;
 }
 
 // Upload types
@@ -177,6 +211,9 @@ export interface MessageThread {
   lastReplyContent: string | null;
   lastReplyStatus: string;
   lastMessageId: string;
+  contactName: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
 }
 
 // Full chat history item (GET /api/messages/thread/:campaignId/:senderNumber)

@@ -12,10 +12,13 @@ import {
   MdSmartToy,
   MdArrowBack,
   MdPerson,
+  MdEmail,
+  MdPhone,
+  MdWeb,
 } from 'react-icons/md';
-import { getCampaignsByUserId, getMessageThreads, getThreadMessages } from '../../services/api';
+import { getCampaignsByUserId, getMessageThreads, getThreadMessages, getWebChatHistory } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import type { MessageThread, ThreadMessage, Campaign } from '../../types/api.types';
+import type { MessageThread, ThreadMessage, Campaign, WebChatMessage } from '../../types/api.types';
 
 const Messages: React.FC = () => {
   const { user } = useAuth();
@@ -24,6 +27,7 @@ const Messages: React.FC = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [threads, setThreads] = useState<MessageThread[]>([]);
   const [chatHistory, setChatHistory] = useState<ThreadMessage[]>([]);
+  const [webChatHistory, setWebChatHistory] = useState<WebChatMessage[]>([]);
 
   // ---------- Loading / error ----------
   const [loadingCampaigns, setLoadingCampaigns] = useState(true);
@@ -34,6 +38,7 @@ const Messages: React.FC = () => {
   // ---------- Selection ----------
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>('');
   const [selectedThread, setSelectedThread] = useState<MessageThread | null>(null);
+  const [showContactInfo, setShowContactInfo] = useState(false);
 
   // ---------- Filters ----------
   const [searchQuery, setSearchQuery] = useState('');
@@ -75,6 +80,7 @@ const Messages: React.FC = () => {
     setError(null);
     setSelectedThread(null);
     setChatHistory([]);
+    setWebChatHistory([]);
     const result = await getMessageThreads(campaignId);
     if (result.success && result.data) {
       setThreads(result.data);
@@ -90,13 +96,28 @@ const Messages: React.FC = () => {
   // ──────────────────────────────────────────
   const handleOpenThread = async (thread: MessageThread) => {
     setSelectedThread(thread);
+    setShowContactInfo(false);
     setLoadingChat(true);
     setChatHistory([]);
-    const result = await getThreadMessages(selectedCampaignId, thread.senderNumber);
-    if (result.success && result.data) {
-      setChatHistory(result.data);
+    setWebChatHistory([]);
+
+    const selectedCampaign = campaigns.find(c => c.id === selectedCampaignId);
+    const isWeb = selectedCampaign?.channel === 'web';
+
+    if (isWeb) {
+      const result = await getWebChatHistory(selectedCampaignId, thread.senderNumber);
+      if (result.success && result.data) {
+        setWebChatHistory(result.data);
+      } else {
+        setError(result.message || 'Failed to load conversation');
+      }
     } else {
-      setError(result.message || 'Failed to load conversation');
+      const result = await getThreadMessages(selectedCampaignId, thread.senderNumber);
+      if (result.success && result.data) {
+        setChatHistory(result.data);
+      } else {
+        setError(result.message || 'Failed to load conversation');
+      }
     }
     setLoadingChat(false);
   };
@@ -140,6 +161,9 @@ const Messages: React.FC = () => {
 
   const getCampaignType = (id: string) =>
     campaigns.find(c => c.id === id)?.replyType || 'text';
+
+  const isWebCampaign = (id: string) =>
+    campaigns.find(c => c.id === id)?.channel === 'web';
 
   const formatTime = (iso: string) =>
     new Date(iso).toLocaleString('en-US', {
@@ -341,9 +365,18 @@ const Messages: React.FC = () => {
                     </div>
                     <div className="thread-info">
                       <div className="thread-top-row">
-                        <span className="thread-number">{thread.senderNumber}</span>
+                        <span className="thread-number">
+                          {isWebCampaign(selectedCampaignId) && thread.contactName
+                            ? thread.contactName
+                            : thread.senderNumber}
+                        </span>
                         <span className="thread-time">{formatTime(thread.latestAt)}</span>
                       </div>
+                      {isWebCampaign(selectedCampaignId) && thread.contactEmail && (
+                        <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginBottom: '2px' }}>
+                          {thread.contactEmail}
+                        </div>
+                      )}
                       <div className="thread-preview-row">
                         <span className="thread-preview">{thread.lastMessageContent}</span>
                         <span className="thread-count">{thread.messageCount}</span>
@@ -377,7 +410,11 @@ const Messages: React.FC = () => {
                     <MdPerson />
                   </div>
                   <div className="chat-contact-info">
-                    <h3>{selectedThread.senderNumber}</h3>
+                    <h3>
+                      {isWebCampaign(selectedCampaignId) && selectedThread.contactName
+                        ? selectedThread.contactName
+                        : selectedThread.senderNumber}
+                    </h3>
                     <p>
                       <span className={`campaign-type-pill ${campaignType}`}>
                         {replyTypeIcon(campaignType)}
@@ -386,10 +423,46 @@ const Messages: React.FC = () => {
                       &nbsp;· {selectedThread.messageCount} messages
                     </p>
                   </div>
-                  <div className="chat-header-status">
+                  <div className="chat-header-status" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     {getStatusBadge(selectedThread.lastReplyStatus)}
+                    {isWebCampaign(selectedCampaignId) && (
+                      <button
+                        className={`contact-info-toggle ${showContactInfo ? 'active' : ''}`}
+                        onClick={() => setShowContactInfo(v => !v)}
+                        title="View contact info"
+                      >
+                        <MdPerson />
+                      </button>
+                    )}
                   </div>
                 </div>
+
+                {/* Web contact info panel */}
+                {isWebCampaign(selectedCampaignId) && showContactInfo && selectedThread.contactName && (
+                  <div className="contact-info-panel">
+                    <div className="contact-info-panel-header">
+                      <div className="contact-info-avatar"><MdPerson /></div>
+                      <div>
+                        <div className="contact-info-name">{selectedThread.contactName}</div>
+                        <div className="contact-info-badge"><MdWeb /> Web Chat</div>
+                      </div>
+                    </div>
+                    <div className="contact-info-rows">
+                      {selectedThread.contactEmail && (
+                        <div className="contact-info-row">
+                          <MdEmail className="contact-info-icon" />
+                          <span>{selectedThread.contactEmail}</span>
+                        </div>
+                      )}
+                      {selectedThread.contactPhone && (
+                        <div className="contact-info-row">
+                          <MdPhone className="contact-info-icon" />
+                          <span>{selectedThread.contactPhone}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Chat messages */}
                 <div className="chat-body" ref={chatBodyRef}>
@@ -398,19 +471,30 @@ const Messages: React.FC = () => {
                       <div className="spinner"></div>
                       <p>Loading messages...</p>
                     </div>
+                  ) : isWebCampaign(selectedCampaignId) ? (
+                    webChatHistory.length === 0 ? (
+                      <div className="chat-no-messages">No messages in this conversation.</div>
+                    ) : (
+                      webChatHistory.map((msg, idx) => (
+                        <div key={idx} className={`chat-message ${msg.role === 'user' ? 'incoming' : 'outgoing'}`}>
+                          <div className={`chat-bubble ${msg.role === 'user' ? 'incoming' : 'outgoing'}`}>
+                            <p>{msg.content}</p>
+                            <span className="chat-time">{formatChatTime(msg.timestamp)}</span>
+                          </div>
+                        </div>
+                      ))
+                    )
                   ) : chatHistory.length === 0 ? (
                     <div className="chat-no-messages">No messages in this conversation.</div>
                   ) : (
                     chatHistory.map((msg, idx) => (
                       <React.Fragment key={idx}>
-                        {/* Incoming */}
                         <div className="chat-message incoming">
                           <div className="chat-bubble incoming">
                             <p>{msg.messageContent}</p>
                             <span className="chat-time">{formatChatTime(msg.receivedAt)}</span>
                           </div>
                         </div>
-                        {/* Outgoing reply */}
                         {msg.replyContent && (
                           <div className="chat-message outgoing">
                             <div className="chat-bubble outgoing">

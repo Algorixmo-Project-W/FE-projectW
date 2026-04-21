@@ -26,6 +26,9 @@ import type {
   UpdateAiAgentRequest,
   AiIntegration,
   SetAiIntegrationRequest,
+  WebChatSession,
+  WebChatMessage,
+  WebChatReply,
 } from '../types/api.types';
 
 // Generic fetch wrapper with error handling
@@ -328,4 +331,38 @@ export async function deleteAiIntegrations(agentId: string): Promise<ApiResponse
   return apiRequest<void>(API_ENDPOINTS.aiAgents.deleteIntegrations(agentId), {
     method: 'DELETE',
   });
+}
+
+// ============================================
+// Web Chat API
+// ============================================
+
+export async function startWebChatSession(
+  campaignId: string,
+  data: { name: string; email: string; phone?: string }
+): Promise<ApiResponse<WebChatSession>> {
+  return apiRequest<WebChatSession>(API_ENDPOINTS.webChat.start(campaignId), {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function sendWebChatMessage(
+  campaignId: string,
+  data: { sessionId: string; message: string }
+): Promise<ApiResponse<WebChatReply>> {
+  return apiRequest<WebChatReply>(API_ENDPOINTS.webChat.message(campaignId), {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getWebChatHistory(
+  campaignId: string,
+  sessionId: string
+): Promise<ApiResponse<WebChatMessage[]>> {
+  return apiRequest<WebChatMessage[]>(
+    `${API_ENDPOINTS.webChat.history(campaignId)}?sessionId=${encodeURIComponent(sessionId)}`,
+    { method: 'GET' }
+  );
 }

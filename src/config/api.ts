@@ -54,6 +54,16 @@ export const API_ENDPOINTS = {
     getThread: (campaignId: string, senderNumber: string) => `/api/messages/thread/${campaignId}/${encodeURIComponent(senderNumber)}`,
   },
 
+  // Web Chat (public endpoints — no auth)
+  webChat: {
+    info: (campaignId: string) => `/api/chat/${campaignId}`,
+    start: (campaignId: string) => `/api/chat/${campaignId}/start`,
+    message: (campaignId: string) => `/api/chat/${campaignId}/message`,
+    history: (campaignId: string) => `/api/chat/${campaignId}/history`,
+    threads: (campaignId: string) => `/api/messages/threads/${campaignId}`,
+    thread: (campaignId: string, sessionId: string) => `/api/messages/thread/${campaignId}/${encodeURIComponent(sessionId)}`,
+  },
+
   // AI Agents
   aiAgents: {
     create: '/api/ai-agents',
