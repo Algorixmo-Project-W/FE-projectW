@@ -52,6 +52,8 @@ export const API_ENDPOINTS = {
     delete: (id: string) => `/api/messages/${id}`,
     getThreads: (campaignId: string) => `/api/messages/threads/${campaignId}`,
     getThread: (campaignId: string, senderNumber: string) => `/api/messages/thread/${campaignId}/${encodeURIComponent(senderNumber)}`,
+    getThreadsByUser: (userId: string) => `/api/messages/threads/user/${userId}`,
+    getThreadByUser: (userId: string, senderNumber: string) => `/api/messages/thread/user/${userId}/${encodeURIComponent(senderNumber)}`,
   },
 
   // Web Chat (public endpoints — no auth)

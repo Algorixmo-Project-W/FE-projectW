@@ -16,9 +16,11 @@ import {
   MdPhone,
   MdWeb,
 } from 'react-icons/md';
-import { getCampaignsByUserId, getMessageThreads, getThreadMessages, getWebChatHistory } from '../../services/api';
+import { getCampaignsByUserId, getMessageThreads, getThreadMessages, getWebChatHistory, getUserThreads, getUserThread } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import type { MessageThread, ThreadMessage, Campaign, WebChatMessage } from '../../types/api.types';
+
+type ViewMode = 'campaigns' | 'direct';
 
 const Messages: React.FC = () => {
   const { user } = useAuth();
@@ -34,6 +36,11 @@ const Messages: React.FC = () => {
   const [loadingThreads, setLoadingThreads] = useState(false);
   const [loadingChat, setLoadingChat] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // ---------- View mode ----------
+  const [viewMode, setViewMode] = useState<ViewMode>('direct');
+  const [directThreads, setDirectThreads] = useState<MessageThread[]>([]);
+  const [loadingDirectThreads, setLoadingDirectThreads] = useState(false);
 
   // ---------- Selection ----------
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>('');
@@ -51,7 +58,10 @@ const Messages: React.FC = () => {
   // Initial load: fetch campaigns
   // ──────────────────────────────────────────
   useEffect(() => {
-    if (user) fetchCampaigns();
+    if (user) {
+      fetchCampaigns();
+      fetchDirectThreads();
+    }
   }, [user]);
 
   const fetchCampaigns = async () => {
@@ -70,6 +80,21 @@ const Messages: React.FC = () => {
       setError(result.message || 'Failed to fetch campaigns');
     }
     setLoadingCampaigns(false);
+  };
+
+  // ──────────────────────────────────────────
+  // Fetch direct (agent-direct) threads
+  // ──────────────────────────────────────────
+  const fetchDirectThreads = async () => {
+    if (!user) return;
+    setLoadingDirectThreads(true);
+    const result = await getUserThreads(user.id);
+    if (result.success && result.data) {
+      setDirectThreads(result.data);
+    } else {
+      setDirectThreads([]);
+    }
+    setLoadingDirectThreads(false);
   };
 
   // ──────────────────────────────────────────
@@ -101,22 +126,32 @@ const Messages: React.FC = () => {
     setChatHistory([]);
     setWebChatHistory([]);
 
-    const selectedCampaign = campaigns.find(c => c.id === selectedCampaignId);
-    const isWeb = selectedCampaign?.channel === 'web';
-
-    if (isWeb) {
-      const result = await getWebChatHistory(selectedCampaignId, thread.senderNumber);
-      if (result.success && result.data) {
-        setWebChatHistory(result.data);
-      } else {
-        setError(result.message || 'Failed to load conversation');
-      }
-    } else {
-      const result = await getThreadMessages(selectedCampaignId, thread.senderNumber);
+    if (viewMode === 'direct') {
+      if (!user) return;
+      const result = await getUserThread(user.id, thread.senderNumber);
       if (result.success && result.data) {
         setChatHistory(result.data);
       } else {
         setError(result.message || 'Failed to load conversation');
+      }
+    } else {
+      const selectedCampaign = campaigns.find(c => c.id === selectedCampaignId);
+      const isWeb = selectedCampaign?.channel === 'web';
+
+      if (isWeb) {
+        const result = await getWebChatHistory(selectedCampaignId, thread.senderNumber);
+        if (result.success && result.data) {
+          setWebChatHistory(result.data);
+        } else {
+          setError(result.message || 'Failed to load conversation');
+        }
+      } else {
+        const result = await getThreadMessages(selectedCampaignId, thread.senderNumber);
+        if (result.success && result.data) {
+          setChatHistory(result.data);
+        } else {
+          setError(result.message || 'Failed to load conversation');
+        }
       }
     }
     setLoadingChat(false);
@@ -142,8 +177,10 @@ const Messages: React.FC = () => {
   // ──────────────────────────────────────────
   // Filtered thread list
   // ──────────────────────────────────────────
+  const activeThreads = viewMode === 'direct' ? directThreads : threads;
+
   const filteredThreads = useMemo(() => {
-    return threads.filter(t => {
+    return activeThreads.filter(t => {
       const matchesSearch =
         t.senderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
         t.lastMessageContent.toLowerCase().includes(searchQuery.toLowerCase());
@@ -151,7 +188,7 @@ const Messages: React.FC = () => {
         selectedStatus === 'all' || t.lastReplyStatus === selectedStatus;
       return matchesSearch && matchesStatus;
     });
-  }, [threads, searchQuery, selectedStatus]);
+  }, [activeThreads, searchQuery, selectedStatus]);
 
   // ──────────────────────────────────────────
   // Helpers
@@ -233,8 +270,8 @@ const Messages: React.FC = () => {
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button
               className="btn secondary"
-              onClick={() => selectedCampaignId && fetchThreads(selectedCampaignId)}
-              disabled={loadingThreads || !selectedCampaignId}
+              onClick={() => viewMode === 'direct' ? fetchDirectThreads() : selectedCampaignId && fetchThreads(selectedCampaignId)}
+              disabled={viewMode === 'direct' ? loadingDirectThreads : (loadingThreads || !selectedCampaignId)}
             >
               <MdRefresh className={loadingThreads ? 'spinning' : ''} />
               Refresh
@@ -260,53 +297,89 @@ const Messages: React.FC = () => {
         <div className="stat-card">
           <div className="stat-icon primary"><MdMessage /></div>
           <div className="stat-info">
-            <h3>{threads.length}</h3>
+            <h3>{activeThreads.length}</h3>
             <p>Total Conversations</p>
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-icon success"><MdCheckCircle /></div>
           <div className="stat-info">
-            <h3>{threads.filter(t => t.lastReplyStatus === 'sent').length}</h3>
+            <h3>{activeThreads.filter(t => t.lastReplyStatus === 'sent').length}</h3>
             <p>Replied</p>
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-icon error"><MdError /></div>
           <div className="stat-info">
-            <h3>{threads.filter(t => t.lastReplyStatus === 'failed').length}</h3>
+            <h3>{activeThreads.filter(t => t.lastReplyStatus === 'failed').length}</h3>
             <p>Failed</p>
           </div>
         </div>
       </div>
 
-      {/* Campaign Selector */}
+      {/* View Mode Tabs */}
       <div className="campaign-selector-bar">
         <MdFilterList className="selector-icon" />
-        <span className="selector-label">Campaign:</span>
-        {loadingCampaigns ? (
-          <span className="selector-loading">Loading...</span>
-        ) : (
-          <div className="campaign-tabs">
-            {campaigns.map(c => (
-              <button
-                key={c.id}
-                className={`campaign-tab ${selectedCampaignId === c.id ? 'active' : ''}`}
-                onClick={() => handleCampaignChange(c.id)}
-              >
-                <span className={`tab-type-dot ${c.replyType}`}>{replyTypeIcon(c.replyType)}</span>
-                {c.name}
-              </button>
-            ))}
-            {campaigns.length === 0 && (
-              <span className="no-campaigns-hint">No campaigns found. Create one first.</span>
-            )}
-          </div>
-        )}
+        <div className="campaign-tabs">
+          <button
+            className={`campaign-tab ${viewMode === 'direct' ? 'active' : ''}`}
+            onClick={() => {
+              setViewMode('direct');
+              setSelectedThread(null);
+              setChatHistory([]);
+              setWebChatHistory([]);
+              setSearchQuery('');
+              setSelectedStatus('all');
+            }}
+          >
+            <span className="tab-type-dot ai"><MdSmartToy /></span>
+            Direct Messages
+          </button>
+          <button
+            className={`campaign-tab ${viewMode === 'campaigns' ? 'active' : ''}`}
+            onClick={() => {
+              setViewMode('campaigns');
+              setSelectedThread(null);
+              setChatHistory([]);
+              setWebChatHistory([]);
+              setSearchQuery('');
+              setSelectedStatus('all');
+            }}
+          >
+            <span className="tab-type-dot text"><MdMessage /></span>
+            Campaigns
+          </button>
+        </div>
       </div>
 
+      {/* Campaign Selector (only in campaigns mode) */}
+      {viewMode === 'campaigns' && (
+        <div className="campaign-selector-bar">
+          <span className="selector-label">Campaign:</span>
+          {loadingCampaigns ? (
+            <span className="selector-loading">Loading...</span>
+          ) : (
+            <div className="campaign-tabs">
+              {campaigns.map(c => (
+                <button
+                  key={c.id}
+                  className={`campaign-tab ${selectedCampaignId === c.id ? 'active' : ''}`}
+                  onClick={() => handleCampaignChange(c.id)}
+                >
+                  <span className={`tab-type-dot ${c.replyType}`}>{replyTypeIcon(c.replyType)}</span>
+                  {c.name}
+                </button>
+              ))}
+              {campaigns.length === 0 && (
+                <span className="no-campaigns-hint">No campaigns found. Create one first.</span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Main Panel */}
-      {selectedCampaignId ? (
+      {(viewMode === 'direct' || selectedCampaignId) ? (
         <div className="messages-panel">
           {/* Thread List Pane */}
           <div className={`thread-list-pane ${selectedThread ? 'hide-mobile' : ''}`}>
@@ -342,7 +415,7 @@ const Messages: React.FC = () => {
               {filteredThreads.length} conversation{filteredThreads.length !== 1 ? 's' : ''}
             </div>
 
-            {loadingThreads ? (
+            {(viewMode === 'direct' ? loadingDirectThreads : loadingThreads) ? (
               <div className="thread-loading">
                 <div className="spinner"></div>
                 <p>Loading conversations...</p>
@@ -416,11 +489,16 @@ const Messages: React.FC = () => {
                         : selectedThread.senderNumber}
                     </h3>
                     <p>
-                      <span className={`campaign-type-pill ${campaignType}`}>
-                        {replyTypeIcon(campaignType)}
-                        {getCampaignName(selectedCampaignId)}
-                      </span>
-                      &nbsp;· {selectedThread.messageCount} messages
+                      {viewMode === 'campaigns' && (
+                        <>
+                          <span className={`campaign-type-pill ${campaignType}`}>
+                            {replyTypeIcon(campaignType)}
+                            {getCampaignName(selectedCampaignId)}
+                          </span>
+                          &nbsp;·&nbsp;
+                        </>
+                      )}
+                      {selectedThread.messageCount} messages
                     </p>
                   </div>
                   <div className="chat-header-status" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -532,7 +610,7 @@ const Messages: React.FC = () => {
           </div>
         </div>
       ) : (
-        !loadingCampaigns && (
+        !loadingCampaigns && viewMode === 'campaigns' && (
           <div className="no-campaign-state">
             <MdMessage className="empty-icon" />
             <p>No campaigns available. Create a campaign first.</p>

@@ -270,6 +270,18 @@ export async function getThreadMessages(campaignId: string, senderNumber: string
   });
 }
 
+export async function getUserThreads(userId: string): Promise<ApiResponse<MessageThread[]>> {
+  return apiRequest<MessageThread[]>(API_ENDPOINTS.messages.getThreadsByUser(userId), {
+    method: 'GET',
+  });
+}
+
+export async function getUserThread(userId: string, senderNumber: string): Promise<ApiResponse<ThreadMessage[]>> {
+  return apiRequest<ThreadMessage[]>(API_ENDPOINTS.messages.getThreadByUser(userId, senderNumber), {
+    method: 'GET',
+  });
+}
+
 // ============================================
 // File Upload API
 // ============================================
