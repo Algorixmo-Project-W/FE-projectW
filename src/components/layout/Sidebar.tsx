@@ -1,11 +1,11 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { 
-  MdDashboard, 
-  MdSettings, 
-  MdCampaign, 
-  MdMessage, 
-  MdPeople, 
+import {
+  MdDashboard,
+  MdSettings,
+  MdCampaign,
+  MdMessage,
+  MdPeople,
   MdBuild,
   MdSmartToy,
   MdChevronLeft,
@@ -13,6 +13,7 @@ import {
   MdLogout
 } from 'react-icons/md';
 import { useAuth } from '../../context/AuthContext';
+import features from '../../config/features.json';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -42,12 +43,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
       icon: MdSettings,
       path: '/api-credentials'
     },
-    {
+    ...(features.campaigns.enabled ? [{
       id: 'campaigns',
       label: 'Campaigns',
       icon: MdCampaign,
       path: '/campaigns'
-    },
+    }] : []),
     {
       id: 'messages',
       label: 'Messages',

@@ -359,6 +359,17 @@ export async function startWebChatSession(
   });
 }
 
+export async function sendDirectMessage(
+  userId: string,
+  senderNumber: string,
+  messageContent: string
+): Promise<ApiResponse<null>> {
+  return apiRequest<null>(API_ENDPOINTS.messages.sendDirect, {
+    method: 'POST',
+    body: JSON.stringify({ userId, senderNumber, messageContent }),
+  });
+}
+
 export async function sendWebChatMessage(
   campaignId: string,
   data: { sessionId: string; message: string }
