@@ -152,12 +152,6 @@ const Messages: React.FC = () => {
     setSendingReply(false);
   };
 
-  const replyTypeIcon = (type: string) => {
-    if (type === 'image') return <MdImage />;
-    if (type === 'ai') return <MdSmartToy />;
-    return <MdMessage />;
-  };
-
   const handleExportCSV = () => {
     const headers = ['Phone Number', 'Messages', 'Last Message', 'Last Reply', 'Status', 'Latest At'];
     const rows = filteredThreads.map(t => [
