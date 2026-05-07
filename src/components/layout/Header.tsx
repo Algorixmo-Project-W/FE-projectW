@@ -61,21 +61,9 @@ const Header: React.FC<HeaderProps> = ({ isCollapsed }) => {
 
         {/* Header Actions */}
         <div className="header-right">
-          {/* Quick Stats */}
-          <div className="quick-stats">
-            <div className="stat-item">
-              <span className="stat-value">24</span>
-              <span className="stat-label">Messages Today</span>
-            </div>
-          </div>
-
-          {/* User Info & Logout */}
           <div className="user-section">
-            <div className="user-avatar">
-              <div className="avatar-circle">
-                {user?.name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
-              </div>
-              <span className="user-name">{user?.name || user?.email}</span>
+            <div className="avatar-circle" title={user?.name || user?.email}>
+              {user?.name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
             </div>
             <button className="logout-btn" onClick={handleLogout} title="Logout">
               <MdLogout />

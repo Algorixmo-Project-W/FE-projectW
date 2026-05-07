@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import finaagleLogo from '../../assets/Finagle logo.png';
 import {
   MdDashboard,
   MdSettings,
@@ -80,8 +81,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
       {/* Logo Section */}
       <div className="sidebar-header">
         <div className="logo-container">
-          <div className="logo-icon">W</div>
-          {!isCollapsed && <span className="logo-text">Project W</span>}
+          {isCollapsed
+            ? <div className="logo-icon"><img src={finaagleLogo} alt="Finagle" className="sidebar-logo-img" /></div>
+            : <img src={finaagleLogo} alt="Finagle" className="sidebar-logo-full" />
+          }
         </div>
         <button className="toggle-btn" onClick={onToggle}>
           {isCollapsed ? <MdChevronRight /> : <MdChevronLeft />}

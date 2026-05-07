@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MdEmail, MdLock, MdVisibility, MdVisibilityOff, MdError } from 'react-icons/md';
 import { useAuth } from '../../context/AuthContext';
+import finaagleLogo from '../../assets/Finagle logo.png';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -40,8 +41,9 @@ const Login: React.FC = () => {
       <div className="login-container">
         {/* Logo */}
         <div className="login-header">
-          <div className="login-logo">W</div>
-          <h1>Project W</h1>
+          <div className="login-logo">
+            <img src={finaagleLogo} alt="Finagle" />
+          </div>
           <p>Sign in to your account</p>
         </div>
 

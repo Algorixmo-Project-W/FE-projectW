@@ -44,6 +44,7 @@ const Messages: React.FC = () => {
   const [sendError, setSendError] = useState<string | null>(null);
 
   const chatBodyRef = useRef<HTMLDivElement>(null);
+  const selectedThreadRef = useRef<MessageThread | null>(null);
 
   useEffect(() => {
     if (user) fetchThreads();
@@ -83,6 +84,25 @@ const Messages: React.FC = () => {
       chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
     }
   }, [chatHistory]);
+
+  // Keep ref in sync so the interval always has the latest selected thread
+  useEffect(() => {
+    selectedThreadRef.current = selectedThread;
+  }, [selectedThread]);
+
+  // Auto-refresh open chat every 5 seconds
+  useEffect(() => {
+    if (!user) return;
+    const interval = setInterval(async () => {
+      const thread = selectedThreadRef.current;
+      if (!thread) return;
+      const result = await getUserThread(user.id, thread.senderNumber);
+      if (result.success && result.data) {
+        setChatHistory(result.data);
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   const filteredThreads = useMemo(() => {
     return threads.filter(t => {
@@ -414,7 +434,6 @@ const Messages: React.FC = () => {
                 <div className={`chat-footer-status ${selectedThread.lastReplyStatus}`}>
                   {selectedThread.lastReplyStatus === 'sent' && <><MdCheckCircle /> Last auto-reply sent successfully</>}
                   {selectedThread.lastReplyStatus === 'failed' && <><MdError /> Last auto-reply failed</>}
-                  {selectedThread.lastReplyStatus === 'pending' && <><MdRefresh /> Reply pending...</>}
                 </div>
                 {isWithin24h(selectedThread.latestAt) && (
                   <div className="chat-reply-input-row">

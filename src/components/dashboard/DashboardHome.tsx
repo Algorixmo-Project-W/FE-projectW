@@ -106,7 +106,7 @@ const DashboardHome: React.FC = () => {
       {/* Welcome Section */}
       <div className="welcome-section">
         <div>
-          <h2>Welcome to Project W</h2>
+          <h2>Welcome to Finagle</h2>
           <p>Manage your WhatsApp campaigns and monitor customer interactions</p>
         </div>
         <button className="btn secondary" onClick={fetchDashboardData} disabled={loading}>

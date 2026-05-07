@@ -2,14 +2,14 @@
 
 :root {
   /* Professional Color Palette */
-  --primary: #1e40af;           /* Deep professional blue */
-  --primary-light: #3b82f6;     /* Light blue for accents */
-  --primary-dark: #1e3a8a;      /* Darker blue for hover states */
-  --primary-subtle: #eff6ff;    /* Very light blue for backgrounds */
-  
+  --primary: #D32F2F;           /* Finagle brand red */
+  --primary-light: #ef5350;     /* Light red for accents */
+  --primary-dark: #b71c1c;      /* Darker red for hover states */
+  --primary-subtle: #ffebee;    /* Very light red for backgrounds */
+
   /* Secondary/Accent */
-  --accent: #0ea5e9;            /* Sky blue accent */
-  --accent-light: #e0f2fe;
+  --accent: #e53935;            /* Red accent */
+  --accent-light: #ffcdd2;
   
   /* Success/Warning/Error */
   --success: #059669;           /* Professional green */
