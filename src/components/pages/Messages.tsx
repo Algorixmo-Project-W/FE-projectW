@@ -3,12 +3,10 @@ import {
   MdSearch,
   MdDownload,
   MdMessage,
-  MdImage,
   MdCheckCircle,
   MdError,
   MdRefresh,
   MdClose,
-  MdSmartToy,
   MdArrowBack,
   MdPerson,
   MdEmail,
@@ -20,14 +18,13 @@ import {
 } from 'react-icons/md';
 import { getUserThreads, getUserThread, sendDirectMessage } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import type { MessageThread, ThreadMessage, WebChatMessage } from '../../types/api.types';
+import type { MessageThread, ThreadMessage } from '../../types/api.types';
 
 const Messages: React.FC = () => {
   const { user } = useAuth();
 
   const [threads, setThreads] = useState<MessageThread[]>([]);
   const [chatHistory, setChatHistory] = useState<ThreadMessage[]>([]);
-  const [webChatHistory, setWebChatHistory] = useState<WebChatMessage[]>([]);
 
   const [loadingThreads, setLoadingThreads] = useState(false);
   const [loadingChat, setLoadingChat] = useState(false);
@@ -67,7 +64,6 @@ const Messages: React.FC = () => {
     setShowContactInfo(false);
     setLoadingChat(true);
     setChatHistory([]);
-    setWebChatHistory([]);
 
     if (!user) return;
     const result = await getUserThread(user.id, thread.senderNumber);
